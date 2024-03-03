@@ -23,7 +23,7 @@ To use the project locally, follow these steps:
 1. Clone the repository to your local machine:
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Ronalchayengia/Radial-Spinning-Menu.git
 
 ## Contributing
 
