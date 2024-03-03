@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wheel Menu</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.5s ease;
+    user-select: none; /* Smooth transition for background color change */
+  }
+
+  .radial-menu {
+    position: relative;
+    width: 200px; /* Adjust as needed */
+    height: 200px; /* Adjust as needed */
+    border-radius: 50%;
+    background-color: #333;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .menu-item {
+    position: absolute;
+    width: 50px; /* Adjust as needed */
+    height: 50px; /* Adjust as needed */
+    background-color: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    color: #333;
+    user-select: none;
+  }
+
+  .menu-item:hover {
+    transform: scale(1.2);
+  }
+
+  .menu-item:nth-child(1) {
+    background-color: blue;
+    transform: rotate(0deg) translate(110px) rotate(-0deg);
+  }
+
+  .menu-item:nth-child(2) {
+    background-color: red; 
+    transform: rotate(72deg) translate(110px) rotate(-72deg);
+  }
+
+  .menu-item:nth-child(3) {
+    background-color: yellow;
+    transform: rotate(144deg) translate(110px) rotate(-144deg);
+  }
+
+  .menu-item:nth-child(4) {
+    background-color: pink;
+    transform: rotate(216deg) translate(110px) rotate(-216deg);
+  }
+
+  .menu-item:nth-child(5) {
+    background-color: green;
+    transform: rotate(288deg) translate(110px) rotate(-288deg);
+  }
+
+  #info {
+    margin-top: 20px;
+    font-size: 16px;
+  }
+  .zoomed {
+    scale: 1; 
+    opacity: 1;
+  }
+  .zoomedo {
+    scale: 0.92;
+    opacity: 0.8;
+  }
+</style>
+</head>
+<body>
+
+<div class="radial-menu" id="radialMenu">
+  <div class="menu-item" data-color="blue">Blue</div>
+  <div class="menu-item" data-color="red">Red</div>
+  <div class="menu-item" data-color="yellow">Yellow</div>
+  <div class="menu-item" data-color="pink">Pink</div>
+  <div class="menu-item" data-color="green">Green</div>
+</div>
+
+<div id="info"></div>
+
+<script>
+const radialMenu = document.getElementById('radialMenu');
+let isDragging = false;
+let previousX = 0;
+let initialVelocity = 0; // Initial velocity variable
+let rotation = 0;
+let inertiaInterval;
+// const contentToScroll = document.getElementById('contentToScroll');
+
+radialMenu.addEventListener('touchstart', (event) => {
+  clearInterval(inertiaInterval); // Clear any existing inertia interval
+  isDragging = true;
+  previousX = event.touches[0].clientX;
+  radialMenu.classList.remove('zoomedo'); // Remove zoomed class when not hovering
+  radialMenu.classList.add('zoomed');
+});
+
+radialMenu.addEventListener('touchend', () => {
+  isDragging = false;
+  radialMenu.classList.remove('zoomed'); // Remove zoomed class when not hovering
+  radialMenu.classList.add('zoomedo'); // remove zoomed class on hover
+  // Start inertia rotation if there was enough initial velocity
+  if (Math.abs(initialVelocity) > 3) {
+    startInertia();
+  }
+  updateRotationInfo(rotation, initialVelocity); // Display initial velocity
+});
+
+radialMenu.addEventListener('touchmove', (event) => {
+  event.preventDefault(); // Prevent default touch behavior (e.g., scrolling)
+  radialMenu.classList.remove('zoomedo'); // Remove zoomed class when not hovering
+  radialMenu.classList.add('zoomed');
+  if (!isDragging) return;
+
+  const currentX = event.touches[0].clientX;
+  const deltaX = currentX - previousX;
+  initialVelocity = deltaX / 10; // Calculate initial velocity
+  rotation += deltaX / 5; // Adjust sensitivity
+  rotation = (rotation % 360 + 360) % 360; // Normalize rotation angle between 0 and 360
+  radialMenu.style.transform = `rotate(${rotation}deg)`;
+  previousX = currentX;
+  // Determine the direction of the spin based on delta rotation
+  const scrollDirection = deltaX > 0 ? 'up' : 'down';
+  if (scrollDirection === 'up') {
+    window.scrollBy(0, 2); // Adjust the scrolling speed as needed
+  } else {
+    window.scrollBy(0, -2); // Adjust the scrolling speed as needed
+  }
+  // if (scrollDirection === 'up') {
+   // contentToScroll.scrollTop -= 2; // Adjust the scrolling speed as needed
+ // } else {
+  //  contentToScroll.scrollTop += 2; // Adjust the scrolling speed as needed
+  //}
+
+  // Update rotation info
+  updateRotationInfo(rotation, initialVelocity); // Display initial velocity
+});
+
+function updateRotationInfo(angle, velocity) {
+  const position = calculatePosition(angle);
+  document.getElementById('info').innerHTML = `Rotation Angle: ${angle.toFixed(2)}&deg; | Position: ${position} | Initial Velocity: ${velocity.toFixed(2)}`;
+}
+
+function calculatePosition(angle) {
+  let position;
+  if (angle >= 0 && angle < 72) {
+    document.body.style.backgroundColor = "red";
+    position = 1;
+  } else if (angle >= 72 && angle < 144) {
+    document.body.style.backgroundColor = "blue";
+    position = 2;
+  } else if (angle >= 144 && angle < 216) {
+    document.body.style.backgroundColor = "green";
+    position = 3;
+  } else if (angle >= 216 && angle < 288) {
+    document.body.style.backgroundColor = "pink";
+    position = 4;
+  } else if (angle >= 288 && angle < 360) {
+    document.body.style.backgroundColor = "yellow";
+    position = 5;
+  }
+  return position;
+}
+
+function startInertia() {
+radialMenu.classList.remove('zoomedo'); // Remove zoomed class when not hovering
+  radialMenu.classList.add('zoomed');
+  const inertiaFactor = 0.9; // Adjust inertia factor
+  let inertiaVelocity = 50; // Initial velocity for inertia
+  inertiaInterval = setInterval(() => {
+    inertiaVelocity *= inertiaFactor; // Slow down rotation
+    rotation += inertiaVelocity; // Update rotation angle
+    rotation = (rotation % 360 + 360) % 360; // Normalize rotation angle between 0 and 360
+    radialMenu.style.transform = `rotate(${rotation}deg)`;
+    updateRotationInfo(rotation, inertiaVelocity); // Display current velocity
+    if (Math.abs(inertiaVelocity) < 0.1) {
+    radialMenu.classList.remove('zoomed'); // Remove zoomed class when not hovering
+  radialMenu.classList.add('zoomedo');
+      clearInterval(inertiaInterval); 
+      // Stop when velocity is very slow
+    }
+  }, 16); // Approx. 60 frames per second
+}
+
+</script>
+
+</body>
+</html>
